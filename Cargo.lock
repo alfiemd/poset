@@ -28,6 +28,8 @@ dependencies = [
 [[package]]
 name = "graff"
 version = "0.1.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "6c9c43bd5576fc697bd4a249b17bcf68ecd666bbd2837ea367ffb57c3a460283"
 dependencies = [
  "serde",
 ]
