@@ -190,7 +190,6 @@ where
         g.add_vertices(&self.elements);
 
         for i in 0..self.elements.len() {
-            println!("{i}");
             for j in 0..self.elements.len() {
                 if self.cover(&self.elements[i], &self.elements[j]) {
                     g.add_edge((i, j))?;
