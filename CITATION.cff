@@ -1,0 +1,21 @@
+cff-version: 1.2.0
+message: "If you found this software useful, you can cite it using the metadata from this file."
+title: "poset"
+abstract: "This is software for research in order theory."
+authors:
+  - family-names: Davies
+    given-names: Alfie
+    orcid: "https://orcid.org/0000-0002-4215-7343"
+version: 0.1.0
+date-released: "2024-09-25"
+keywords:
+  - "order theory"
+  - posets
+  - mathematics
+license: Unlicense
+type: software
+repository-code: "https://github.com/alfiemd/poset"
+contact:
+  - email: research@alfied.xyz
+  - family-names: Davies
+  - given-names: Alfie
