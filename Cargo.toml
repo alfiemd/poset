@@ -1,0 +1,21 @@
+[package]
+name = "poset"
+version = "0.1.0"
+authors = ["Alfie Davies <research@alfied.xyz>"]
+edition = "2021"
+rust-version = "1.75.0"
+description = "A simple implementation of posets."
+readme = "README.md"
+repository = "https://github.com/alfiemd/poset"
+license = "Unlicense"
+keywords = ["poset", "relation", "mathematics"]
+categories = ["data-structures", "mathematics", "science"]
+resolver = "2"
+
+[dependencies]
+rand = { version = "0.8.5", optional = true }
+graff = { path = "../graff", optional = true }
+serde = { version = "1.0.210", optional = true }
+
+[features]
+serde = ["serde/derive", "graff?/serde"]
