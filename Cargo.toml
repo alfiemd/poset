@@ -14,7 +14,7 @@ resolver = "2"
 
 [dependencies]
 rand = { version = "0.8.5", optional = true }
-graff = { path = "../graff", optional = true }
+graff = { version = "0.1.0" , optional = true }
 serde = { version = "1.0.210", optional = true }
 
 [features]
