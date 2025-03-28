@@ -176,7 +176,6 @@ where
 
 impl<T, F> Poset<T, F>
 where
-    T: PartialEq,
     F: PartialOrderBehaviour<Element = T>,
 {
     /// Returns a hasse diagram of the poset.
@@ -199,13 +198,7 @@ where
 
         Ok(g)
     }
-}
 
-impl<T, F> Poset<T, F>
-where
-    T: PartialEq,
-    F: PartialOrderBehaviour<Element = T>,
-{
     /// Return a chain decomposition of the poset.
     ///
     /// # Errors
@@ -258,7 +251,7 @@ where
             break;
         }
 
-        pool.retain(|x| !chain.contains(x));
+        pool.retain(|x| !chain.iter().any(|y| self.eq(x, y)));
 
         Ok(chain)
     }
