@@ -1,12 +1,24 @@
 use crate::AntichainIterator;
 use crate::PosetError;
 use crate::{PartialOrderBehaviour, PosetBehaviour};
+use std::fmt;
 
 #[cfg(feature = "rand")]
 use rand::seq::SliceRandom;
 
 #[cfg(feature = "graff")]
 use graff::{Graph, GraphBehaviour};
+
+#[derive(Debug)]
+struct ChainConstructionError;
+
+impl fmt::Display for ChainConstructionError {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "could not find a minimal element in a non-empty pool")
+    }
+}
+
+impl std::error::Error for ChainConstructionError {}
 
 /// A struct representing a poset.
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
@@ -232,11 +244,15 @@ where
 
         let other = pool.clone();
 
-        let elem = self
+        let minima = self
             .minima_in_pool(other.clone())
-            .ok_or("there should be a minimal element")?;
+            .ok_or(ChainConstructionError)?;
 
-        let mut chain = vec![elem[0]];
+        let Some(first) = minima.first().copied() else {
+            return Err(Box::new(ChainConstructionError));
+        };
+
+        let mut chain = vec![first];
 
         let mut latest = chain[0];
 
