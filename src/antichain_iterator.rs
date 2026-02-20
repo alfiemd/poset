@@ -39,7 +39,6 @@ where
 
     fn advance_indices(&mut self) -> bool {
         for i in (0..self.indices.len()).rev() {
-            #[allow(clippy::match_on_vec_items)]
             match self.indices[i] {
                 None => {
                     if !self.vectors[i].is_empty() {
