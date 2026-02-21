@@ -3,9 +3,10 @@ use std::cmp::Ordering;
 
 /// A trait to represent the behaviour of a partial order.
 ///
-/// One needs to define the 'greater than or equal to' behaviour. But implementing this trait is
-/// not a *guarantee* that the type is a partial order; this requires care in the function you
-/// decide to implement.
+/// The intended use is to implement [`PartialOrderBehaviour::ge`] and use the provided default
+/// methods for the other relation predicates. Overriding methods like `eq`, `le`, `lt`, `gt`,
+/// `cp`, or `ip` is possible, but those overrides must remain consistent with `ge`, which requires
+/// the implementer to take care.
 pub trait PartialOrderBehaviour {
     /// A type representing the elements that a partial order compares.
     type Element;
@@ -52,6 +53,40 @@ pub trait PartialOrderBehaviour {
     fn cp(&self, a: &Self::Element, b: &Self::Element) -> bool {
         self.ge(a, b) || self.ge(b, a)
     }
+
+    /// Validate reflexivity for a finite set of elements.
+    ///
+    /// Returns `true` iff `a >= a` holds for every provided element.
+    ///
+    /// This assumes deterministic behaviour from the relation implementation.
+    fn validate_reflexive<'a>(&self, elements: impl IntoIterator<Item = &'a Self::Element>) -> bool
+    where
+        Self::Element: 'a,
+    {
+        elements.into_iter().all(|a| self.ge(a, a))
+    }
+
+    /// Validate transitivity for a finite set of elements.
+    ///
+    /// Returns `true` iff whenever `a >= b` and `b >= c`, we also have `a >= c`, for all triples
+    /// of provided elements.
+    ///
+    /// This assumes deterministic behaviour from the relation implementation.
+    fn validate_transitive(&self, elements: &[&Self::Element]) -> bool {
+        for a in elements {
+            for b in elements {
+                if self.ge(a, b) {
+                    for c in elements {
+                        if self.ge(b, c) && !self.ge(a, c) {
+                            return false;
+                        }
+                    }
+                }
+            }
+        }
+
+        true
+    }
 }
 
 /// A trait representing the behaviour of a poset.
@@ -76,6 +111,21 @@ pub trait PosetBehaviour: PartialOrderBehaviour {
 
     /// Return a reference to the partial order of the poset.
     fn partial_order(&self) -> &Self::POrder;
+
+    /// Validate reflexivity on the current elements of the poset.
+    ///
+    /// This assumes deterministic behaviour from the relation implementation.
+    fn is_reflexive(&self) -> bool {
+        self.partial_order().validate_reflexive(self.elements())
+    }
+
+    /// Validate transitivity on the current elements of the poset.
+    ///
+    /// This assumes deterministic behaviour from the relation implementation.
+    fn is_transitive(&self) -> bool {
+        let elements = self.elements().collect::<Vec<_>>();
+        self.partial_order().validate_transitive(&elements)
+    }
 
     /// Return the maximal element(s) of the poset, which must exist unless the poset has no
     /// elements.

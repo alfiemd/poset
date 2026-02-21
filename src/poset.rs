@@ -59,6 +59,26 @@ where
         &self.compare
     }
 
+    fn is_reflexive(&self) -> bool {
+        self.elements.iter().all(|a| self.ge(a, a))
+    }
+
+    fn is_transitive(&self) -> bool {
+        for a in &self.elements {
+            for b in &self.elements {
+                if self.ge(a, b) {
+                    for c in &self.elements {
+                        if self.ge(b, c) && !self.ge(a, c) {
+                            return false;
+                        }
+                    }
+                }
+            }
+        }
+
+        true
+    }
+
     fn maxima(&self) -> Result<impl IntoIterator<Item = &T>, PosetError> {
         if self.elements.is_empty() {
             return Ok(vec![]);
@@ -280,7 +300,7 @@ where
 #[cfg(test)]
 mod tests {
     use super::Poset;
-    use crate::{PartialOrder, PosetBehaviour, PosetError};
+    use crate::{PartialOrder, PartialOrderBehaviour, PosetBehaviour, PosetError};
 
     #[test]
     fn empty_poset_has_no_maxima() {
@@ -326,5 +346,68 @@ mod tests {
         let result = poset.chain_decomposition();
 
         assert_eq!(result, Err(PosetError::InvalidPartialOrder));
+    }
+
+    #[test]
+    fn reflexive_validation_accepts_reflexive_relation() {
+        let relation = PartialOrder::new(usize::ge);
+
+        assert!(relation.validate_reflexive([&1_usize, &2, &3]));
+    }
+
+    #[test]
+    fn reflexive_validation_rejects_irreflexive_relation() {
+        let relation = PartialOrder::new(usize::gt);
+
+        assert!(!relation.validate_reflexive([&1_usize, &2, &3]));
+    }
+
+    #[test]
+    fn transitive_validation_accepts_transitive_relation() {
+        let relation = PartialOrder::new(usize::ge);
+
+        assert!(relation.validate_transitive(&[&1_usize, &2, &3]));
+    }
+
+    #[test]
+    fn transitive_validation_rejects_non_transitive_relation() {
+        let relation = PartialOrder::new(|a: &usize, b: &usize| a != b);
+
+        assert!(!relation.validate_transitive(&[&1_usize, &2, &3]));
+    }
+
+    #[test]
+    fn poset_is_reflexive_and_transitive_for_ge() {
+        let poset = Poset::with_elements([1_usize, 2, 3], PartialOrder::new(usize::ge));
+
+        assert!(poset.is_reflexive());
+        assert!(poset.is_transitive());
+    }
+
+    #[test]
+    fn poset_detects_irreflexive_relation() {
+        let poset = Poset::with_elements([1_usize, 2, 3], PartialOrder::new(usize::gt));
+
+        assert!(!poset.is_reflexive());
+        assert!(poset.is_transitive());
+    }
+
+    #[test]
+    fn poset_detects_non_transitive_relation() {
+        let poset = Poset::with_elements(
+            [1_usize, 2, 3],
+            PartialOrder::new(|a: &usize, b: &usize| a != b),
+        );
+
+        assert!(!poset.is_reflexive());
+        assert!(!poset.is_transitive());
+
+        let poset = Poset::with_elements(
+            [1_usize, 2, 3],
+            PartialOrder::new(|a: &usize, b: &usize| a.abs_diff(*b) <= 1),
+        );
+
+        assert!(poset.is_reflexive());
+        assert!(!poset.is_transitive());
     }
 }
