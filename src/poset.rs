@@ -269,3 +269,46 @@ where
         AntichainIterator::new(chains, &self.compare)
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::Poset;
+    use crate::{PartialOrder, PosetBehaviour};
+
+    #[test]
+    fn empty_poset_has_no_maxima() {
+        let poset = Poset::new(PartialOrder::new(usize::ge));
+
+        let maxima: Vec<&usize> = poset
+            .maxima()
+            .expect("empty poset should not error")
+            .into_iter()
+            .collect();
+
+        assert!(maxima.is_empty());
+    }
+
+    #[test]
+    fn empty_poset_has_no_minima() {
+        let poset = Poset::new(PartialOrder::new(usize::ge));
+
+        let minima: Vec<&usize> = poset
+            .minima()
+            .expect("empty poset should not error")
+            .into_iter()
+            .collect();
+
+        assert!(minima.is_empty());
+    }
+
+    #[test]
+    fn empty_poset_chain_decomposition_is_empty() {
+        let poset = Poset::new(PartialOrder::new(usize::ge));
+
+        let chains = poset
+            .chain_decomposition()
+            .expect("empty poset should have an empty decomposition");
+
+        assert!(chains.is_empty());
+    }
+}
