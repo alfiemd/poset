@@ -291,6 +291,9 @@ where
     F: PartialOrderBehaviour<Element = T>,
 {
     /// Returns an [`AntichainIterator`] given a list of `chains`.
+    ///
+    /// The input is expected to be a valid chain decomposition: chains should be pairwise
+    /// non-overlapping according to the partial order equality.
     #[must_use]
     pub fn antichains<'a>(&'a self, chains: Vec<Vec<&'a T>>) -> AntichainIterator<'a, 'a, T, F> {
         AntichainIterator::new(chains, &self.compare)

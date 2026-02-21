@@ -17,6 +17,9 @@ where
     F: PartialOrderBehaviour<Element = T>,
 {
     /// Construct a new `AntichainIterator`, given a list of chains and a partial order.
+    ///
+    /// The input is expected to be a valid chain decomposition: chains should be pairwise
+    /// non-overlapping according to the partial order equality.
     pub fn new(vectors: Vec<Vec<&'a T>>, p_ord: &'b F) -> Self {
         AntichainIterator {
             indices: vec![None; vectors.len()],
@@ -86,5 +89,38 @@ where
         }
 
         None
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::AntichainIterator;
+    use crate::PartialOrder;
+
+    #[test]
+    fn empty_chains_yield_only_empty_antichain() {
+        let p_ord = PartialOrder::new(usize::ge);
+        let mut iter: AntichainIterator<'_, '_, usize, _> = AntichainIterator::new(vec![], &p_ord);
+
+        assert_eq!(iter.next(), Some(vec![]));
+        assert_eq!(iter.next(), None);
+    }
+
+    #[test]
+    fn singleton_chains_generate_expected_antichains() {
+        let p_ord = PartialOrder::new(usize::ge);
+        let chains = vec![vec![&1_usize], vec![&2_usize]];
+        let antichains: Vec<Vec<usize>> = AntichainIterator::new(chains, &p_ord).collect();
+
+        assert_eq!(antichains, vec![vec![], vec![2], vec![1]]);
+    }
+
+    #[test]
+    fn empty_chain_is_skipped_while_iterating() {
+        let p_ord = PartialOrder::new(usize::ge);
+        let chains = vec![vec![&1_usize], vec![], vec![&3_usize]];
+        let antichains: Vec<Vec<usize>> = AntichainIterator::new(chains, &p_ord).collect();
+
+        assert_eq!(antichains, vec![vec![], vec![3], vec![1]]);
     }
 }
