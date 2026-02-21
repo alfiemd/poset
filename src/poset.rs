@@ -1,24 +1,12 @@
 use crate::AntichainIterator;
 use crate::PosetError;
 use crate::{PartialOrderBehaviour, PosetBehaviour};
-use std::fmt;
 
 #[cfg(feature = "rand")]
 use rand::seq::SliceRandom;
 
 #[cfg(feature = "graff")]
 use graff::{Graph, GraphBehaviour};
-
-#[derive(Debug)]
-struct ChainConstructionError;
-
-impl fmt::Display for ChainConstructionError {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "could not find a minimal element in a non-empty pool")
-    }
-}
-
-impl std::error::Error for ChainConstructionError {}
 
 /// A struct representing a poset.
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
@@ -215,9 +203,9 @@ where
     ///
     /// # Errors
     ///
-    /// Returns an error if it cannot find any minimal elements in a non-empty pool while
-    /// generating the chains, but such an element should exist if the partial order is valid.
-    pub fn chain_decomposition(&self) -> Result<Vec<Vec<&T>>, Box<dyn std::error::Error>> {
+    /// Returns [`PosetError::InvalidPartialOrder`] if it cannot find any minimal elements in a
+    /// non-empty pool while generating the chains.
+    pub fn chain_decomposition(&self) -> Result<Vec<Vec<&T>>, PosetError> {
         let mut vertices = self.elements.iter().collect::<Vec<&T>>();
         let mut chains = vec![];
 
@@ -232,12 +220,9 @@ where
     ///
     /// # Errors
     ///
-    /// Returns an error if it cannot find any minimal elements in a non-empty pool, but such an
-    /// element should exist if the partial order is valid.
-    pub fn chain_from_pool<'a>(
-        &self,
-        pool: &mut Vec<&'a T>,
-    ) -> Result<Vec<&'a T>, Box<dyn std::error::Error>> {
+    /// Returns [`PosetError::InvalidPartialOrder`] if it cannot find any minimal elements in a
+    /// non-empty pool.
+    pub fn chain_from_pool<'a>(&self, pool: &mut Vec<&'a T>) -> Result<Vec<&'a T>, PosetError> {
         if pool.is_empty() {
             return Ok(vec![]);
         }
@@ -246,10 +231,10 @@ where
 
         let minima = self
             .minima_in_pool(other.clone())
-            .ok_or(ChainConstructionError)?;
+            .ok_or(PosetError::InvalidPartialOrder)?;
 
         let Some(first) = minima.first().copied() else {
-            return Err(Box::new(ChainConstructionError));
+            return Err(PosetError::InvalidPartialOrder);
         };
 
         let mut chain = vec![first];

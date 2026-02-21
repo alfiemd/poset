@@ -6,6 +6,8 @@ pub enum PosetError {
     NoMaxima,
     /// Indicates that the poset has no minima, when it should.
     NoMinima,
+    /// Indicates that the provided relation does not behave as a valid partial order.
+    InvalidPartialOrder,
 }
 
 impl std::fmt::Display for PosetError {
@@ -13,6 +15,11 @@ impl std::fmt::Display for PosetError {
         match self {
             PosetError::NoMaxima => write!(f, "non-empty poset should have a maximal element"),
             PosetError::NoMinima => write!(f, "non-empty poset should have a minimal element"),
+            PosetError::InvalidPartialOrder => {
+                write!(f, "provided relation is not a valid partial order")
+            }
         }
     }
 }
+
+impl std::error::Error for PosetError {}
