@@ -226,6 +226,7 @@ where
         if pool.is_empty() {
             return Ok(vec![]);
         }
+        let original_len = pool.len();
 
         let other = pool.clone();
 
@@ -254,6 +255,12 @@ where
 
         pool.retain(|x| !chain.iter().any(|y| self.eq(x, y)));
 
+        // Ensure we made progress: invalid relations (for example, irreflexive ones) can
+        // cause `eq` to fail to identify even the selected chain elements.
+        if pool.len() == original_len {
+            return Err(PosetError::InvalidPartialOrder);
+        }
+
         Ok(chain)
     }
 }
@@ -273,7 +280,7 @@ where
 #[cfg(test)]
 mod tests {
     use super::Poset;
-    use crate::{PartialOrder, PosetBehaviour};
+    use crate::{PartialOrder, PosetBehaviour, PosetError};
 
     #[test]
     fn empty_poset_has_no_maxima() {
@@ -310,5 +317,14 @@ mod tests {
             .expect("empty poset should have an empty decomposition");
 
         assert!(chains.is_empty());
+    }
+
+    #[test]
+    fn invalid_relation_errors_in_chain_decomposition() {
+        let poset = Poset::with_elements([1_usize, 2, 3], PartialOrder::new(usize::gt));
+
+        let result = poset.chain_decomposition();
+
+        assert_eq!(result, Err(PosetError::InvalidPartialOrder));
     }
 }
